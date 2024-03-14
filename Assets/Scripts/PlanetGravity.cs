@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class PlanetGravity : MonoBehaviour
 {
-    [SerializeField] private float gravityForce = -9.8f;
+    private float gravityForce = -9.8f;
 
     void FixedUpdate()
     {

@@ -4,11 +4,11 @@ using ETouch = UnityEngine.InputSystem.EnhancedTouch;
 
 public class JoysticksHandler : MonoBehaviour
 {
-    [SerializeField] private RectTransform _movementJoystickBackGround;
-    [SerializeField] private RectTransform _combatJoystickBackGround;
+    [SerializeField] private RectTransform _movementJoystickBG;
+    [SerializeField] private RectTransform _rotateJoystickBG;
 
     private Vector2 _movementJoystickStartPosition;
-    private Vector2 _combatJoystickStartPosition;
+    private Vector2 _rotateJoystickStartPosition;
 
     private Joystick _joystick;
 
@@ -20,8 +20,8 @@ public class JoysticksHandler : MonoBehaviour
         _joystick = new Joystick();
         _joystick.Enable();
 
-        _movementJoystickStartPosition = _movementJoystickBackGround.anchoredPosition;
-        _combatJoystickStartPosition = _combatJoystickBackGround.anchoredPosition;
+        _movementJoystickStartPosition = _movementJoystickBG.anchoredPosition;
+        _rotateJoystickStartPosition = _rotateJoystickBG.anchoredPosition;
     }
 
     //-----------------------------------------------------------------------------------------------------------------
@@ -46,16 +46,16 @@ public class JoysticksHandler : MonoBehaviour
     {
         if (touchedFinger.screenPosition.x <= Screen.width / 2)
         {
-            _movementJoystickBackGround.anchoredPosition = touchedFinger.screenPosition;
+            _movementJoystickBG.anchoredPosition = touchedFinger.screenPosition;
         }
         else
         {
-            _combatJoystickBackGround.anchoredPosition = touchedFinger.screenPosition;
+            _rotateJoystickBG.anchoredPosition = touchedFinger.screenPosition;
         }
     }
     private void OnJoystickUp(Finger releasedFinger)
     {
-        _movementJoystickBackGround.anchoredPosition = _movementJoystickStartPosition;
-        _combatJoystickBackGround.anchoredPosition = _combatJoystickStartPosition;
+        _movementJoystickBG.anchoredPosition = _movementJoystickStartPosition;
+        _rotateJoystickBG.anchoredPosition = _rotateJoystickStartPosition;
     }    
 }

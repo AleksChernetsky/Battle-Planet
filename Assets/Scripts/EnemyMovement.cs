@@ -6,11 +6,10 @@ public class EnemyMovement : MonoBehaviour
     [SerializeField] private float _speed = 5;
     [SerializeField] private float _rotateSpeed = 5;
     [SerializeField] private float _chaseDistance = 5;
+    [SerializeField] private float _checkObstacleDistance = 1;
 
-    private float _checkObstacleDistance = 2;
-    private bool _obstacleInFront;
-
-    protected Rigidbody _rigidbody;
+    private Rigidbody _rigidbody;
+    private bool obstacleFront, obstacleFrontLeft, obstacleFrontRight;
 
     private void Awake()
     {
@@ -19,40 +18,53 @@ public class EnemyMovement : MonoBehaviour
     private void FixedUpdate()
     {
         Movement();
-        Rotation();
     }
     private void Movement()
     {
         CheckObstacle();
-        var direction = (_target.position - transform.position).normalized;
+
+        Vector3 direction = (_target.position - transform.position).normalized;
 
         if (Vector3.Distance(transform.position, _target.position) > _chaseDistance)
         {
-            _rigidbody.MovePosition(transform.position + direction * _speed * Time.fixedDeltaTime);
-        }
-        if (_obstacleInFront)
-        {
-            _rigidbody.MovePosition(transform.position + transform.TransformDirection(Vector3.right) * _speed * 2 * Time.fixedDeltaTime);
-            // костыль да, но на навигацию без navmesh нужно потратить немного времени =)
+            if (obstacleFrontLeft || obstacleFrontRight)
+            {
+                _rigidbody.MovePosition(transform.position + transform.TransformDirection(Vector3.forward) * (_speed * 2) * Time.fixedDeltaTime);
+            }
+            else
+            {
+                _rigidbody.MovePosition(transform.position + direction * _speed * Time.fixedDeltaTime);
+                Rotation();
+            }
         }
     }
     private void Rotation()
     {
-        Vector3 localTarget = transform.InverseTransformPoint(_target.transform.position);
-        float angle = Mathf.Atan2(localTarget.x, localTarget.z) * Mathf.Rad2Deg;
-        Vector3 eulerAngleVelocity = new Vector3(0, angle, 0);
-        Quaternion deltaRotation = Quaternion.Euler(eulerAngleVelocity * _rotateSpeed * Time.deltaTime);
-        _rigidbody.MoveRotation(_rigidbody.rotation * deltaRotation);
+        Vector3 targetRotation = transform.InverseTransformPoint(_target.transform.position);
+        float angle = Mathf.Atan2(targetRotation.x, targetRotation.z) * Mathf.Rad2Deg;
+        Quaternion localRotation = Quaternion.Euler(new Vector3(0, angle, 0) * _rotateSpeed * Time.deltaTime);
+        _rigidbody.MoveRotation(_rigidbody.rotation * localRotation);
     }
     private void CheckObstacle()
     {
-        if (Physics.Raycast(transform.position, transform.TransformDirection(Vector3.forward), _checkObstacleDistance))
+        obstacleFront = Physics.Raycast(transform.position, transform.TransformDirection(new Vector3(0, 0, 1)), _checkObstacleDistance / 2);
+        obstacleFrontLeft = Physics.Raycast(transform.position, transform.TransformDirection(new Vector3(-1, 0, 1)), _checkObstacleDistance);
+        obstacleFrontRight = Physics.Raycast(transform.position, transform.TransformDirection(new Vector3(1, 0, 1)), _checkObstacleDistance);
+
+        if (obstacleFrontLeft)
         {
-            _obstacleInFront = true;
+            Quaternion localRotation = Quaternion.Euler(Vector3.up * _rotateSpeed);
+            _rigidbody.MoveRotation(_rigidbody.rotation * localRotation);
         }
-        else
+        else if (obstacleFrontRight)
         {
-            _obstacleInFront = false;
+            Quaternion localRotation = Quaternion.Euler(Vector3.down * _rotateSpeed);
+            _rigidbody.MoveRotation(_rigidbody.rotation * localRotation);
+        }
+        else if (obstacleFront)
+        {
+            Quaternion localRotation = Quaternion.Euler(new Vector3(0, Random.Range(-45f, 45f), 0));
+            _rigidbody.MoveRotation(_rigidbody.rotation * localRotation);
         }
     }
 }
