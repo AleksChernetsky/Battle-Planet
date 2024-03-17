@@ -6,7 +6,7 @@ public class EnemyMovement : MonoBehaviour
     [SerializeField] private float _speed = 5;
     [SerializeField] private float _rotateSpeed = 5;
     [SerializeField] private float _chaseDistance = 5;
-    [SerializeField] private float _checkObstacleDistance = 1;
+    [SerializeField] private float _checkObstacleDistance = 2;
 
     private Rigidbody _rigidbody;
     private bool obstacleFront, obstacleFrontLeft, obstacleFrontRight;
@@ -19,6 +19,7 @@ public class EnemyMovement : MonoBehaviour
     {
         Movement();
     }
+
     private void Movement()
     {
         CheckObstacle();
@@ -33,38 +34,44 @@ public class EnemyMovement : MonoBehaviour
             }
             else
             {
+                Rotation(_target.position);
                 _rigidbody.MovePosition(transform.position + direction * _speed * Time.fixedDeltaTime);
-                Rotation();
             }
         }
     }
-    private void Rotation()
+    private void Rotation(Vector3 target)
     {
-        Vector3 targetRotation = transform.InverseTransformPoint(_target.transform.position);
+        Vector3 targetRotation = transform.InverseTransformPoint(target);
         float angle = Mathf.Atan2(targetRotation.x, targetRotation.z) * Mathf.Rad2Deg;
         Quaternion localRotation = Quaternion.Euler(new Vector3(0, angle, 0) * _rotateSpeed * Time.deltaTime);
         _rigidbody.MoveRotation(_rigidbody.rotation * localRotation);
     }
     private void CheckObstacle()
     {
-        obstacleFront = Physics.Raycast(transform.position, transform.TransformDirection(new Vector3(0, 0, 1)), _checkObstacleDistance / 2);
-        obstacleFrontLeft = Physics.Raycast(transform.position, transform.TransformDirection(new Vector3(-1, 0, 1)), _checkObstacleDistance);
-        obstacleFrontRight = Physics.Raycast(transform.position, transform.TransformDirection(new Vector3(1, 0, 1)), _checkObstacleDistance);
+        obstacleFront = CheckDirection(new Vector3(0, 0, 1));
+        obstacleFrontLeft = CheckDirection(new Vector3(-1, 0, 1));
+        obstacleFrontRight = CheckDirection(new Vector3(1, 0, 1));
 
-        if (obstacleFrontLeft)
+        Quaternion localRotation = Quaternion.identity;
+
+        if (obstacleFront)
         {
-            Quaternion localRotation = Quaternion.Euler(Vector3.up * _rotateSpeed);
-            _rigidbody.MoveRotation(_rigidbody.rotation * localRotation);
+            localRotation = Quaternion.Euler(new Vector3(0, Random.Range(-45f, 45f), 0));
+        }
+        else if (obstacleFrontLeft)
+        {
+            localRotation = Quaternion.Euler(Vector3.up * _rotateSpeed);
         }
         else if (obstacleFrontRight)
         {
-            Quaternion localRotation = Quaternion.Euler(Vector3.down * _rotateSpeed);
-            _rigidbody.MoveRotation(_rigidbody.rotation * localRotation);
+            localRotation = Quaternion.Euler(Vector3.down * _rotateSpeed);
         }
-        else if (obstacleFront)
-        {
-            Quaternion localRotation = Quaternion.Euler(new Vector3(0, Random.Range(-45f, 45f), 0));
-            _rigidbody.MoveRotation(_rigidbody.rotation * localRotation);
-        }
+
+        _rigidbody.MoveRotation(_rigidbody.rotation * localRotation);
+    }
+
+    private bool CheckDirection(Vector3 direction)
+    {
+        return Physics.Raycast(transform.position, transform.TransformDirection(direction), _checkObstacleDistance);
     }
 }

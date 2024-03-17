@@ -11,7 +11,6 @@ public class PlayerMovement : MonoBehaviour
     private void Awake()
     {
         _rigidbody = GetComponent<Rigidbody>();
-        Debug.LogWarning("Left Stick / WASD to move, Right Stick to rotate");
     }
     private void FixedUpdate()
     {
