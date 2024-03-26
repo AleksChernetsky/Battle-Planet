@@ -1,13 +1,49 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class PlanetGravity : MonoBehaviour
 {
-    private float gravityForce = -9.8f;
+    [SerializeField] private LayerMask layermask;
+    [SerializeField] private float _distanceToCheck;
 
-    void FixedUpdate()
+    private float _checkDelay;
+    private float gravityForce = -9.8f;
+    public Collider[] _colliders;
+    public List<Rigidbody> _rigidbodies;
+
+    private void OnDrawGizmos()
     {
-        Rigidbody[] rigidBodies = FindObjectsOfType<Rigidbody>();
-        foreach (var objects in rigidBodies)
+        Gizmos.color = Color.green;
+        Gizmos.DrawWireSphere(transform.position, _distanceToCheck);
+    }
+    private void Update()
+    {
+        CheckObjects();
+    }
+    private void FixedUpdate()
+    {
+        PerformGravity();
+    }
+    private void CheckObjects()
+    {
+        _checkDelay += Time.deltaTime;
+        if (_checkDelay >= 0.1f)
+        {
+            _rigidbodies.Clear();
+            _colliders = Physics.OverlapSphere(transform.position, _distanceToCheck, layermask);
+            for (int i = 0; i < _colliders.Length; i++)
+            {
+                if (_colliders[i].gameObject.TryGetComponent(out Rigidbody rigidbody))
+                {
+                    _rigidbodies.Add(rigidbody);
+                }
+            }
+            _checkDelay = 0;
+        }
+    }
+    private void PerformGravity()
+    {
+        foreach (var objects in _rigidbodies)
         {
             objects.useGravity = false;
             objects.constraints = RigidbodyConstraints.FreezeRotation;
